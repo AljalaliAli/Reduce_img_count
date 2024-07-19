@@ -1,0 +1,60 @@
+-- Step 1: Create the new table with the composite primary key excluding TS
+CREATE TABLE "NewRoh" (
+    "TS"     TEXT,
+    "ModeId" INTEGER,
+    "pgm"    TEXT,
+    "run"    TEXT,
+    "tool"   TEXT,
+    PRIMARY KEY ("ModeId", "pgm", "run", "tool")
+);
+
+-- Step 2: Insert unique rows into the new table by grouping on the primary key columns
+INSERT INTO "NewRoh" ("TS", "ModeId", "pgm", "run", "tool")
+SELECT MIN("TS") as "TS", "ModeId", "pgm", "run", "tool"
+FROM "Roh"
+GROUP BY "ModeId", "pgm", "run", "tool";
+
+###############################
+######### for the db withe the new configuration
+###############################
+-- Step 1: Create the new table with the composite primary key excluding TS
+CREATE TABLE "MDE_uniqe" (
+    "ts"     TEXT,
+    "stern" TEXT,
+    "tool"    TEXT,
+    "s"    TEXT,
+    "f"   TEXT,
+    "pgm"   TEXT,
+    PRIMARY KEY ("stern", "tool", "s", "f", "pgm")
+);
+
+-- Step 2: Insert unique rows into the new table by grouping on the primary key columns
+INSERT INTO "MDE_uniqe" ("ts", "stern", "tool", "s", "f", "pgm")
+SELECT MIN("ts") as "ts", "stern", "tool", "s", "f", "pgm"
+FROM "MDE"
+GROUP BY "stern", "tool", "s", "f", "pgm";
+
+###############################
+########### delete some colouns
+###############################
+BEGIN TRANSACTION;
+
+-- Create a new table without the columns you want to drop
+CREATE TABLE new_table AS SELECT column1, column3, column4 FROM old_table;
+
+-- Drop the old table
+DROP TABLE old_table;
+
+-- Rename the new table to the old table
+ALTER TABLE new_table RENAME TO old_table;
+
+COMMIT;
+
+###############################
+##### merge 2 coluns
+###############################
+-- Add a new column 'sf' to your table 'MDE'
+ALTER TABLE MDE ADD COLUMN sf TEXT;
+
+-- Update the new column with the merged values of 's' and 'f'
+UPDATE MDE SET sf = COALESCE(s, '') || ' ' || COALESCE(f, '');
